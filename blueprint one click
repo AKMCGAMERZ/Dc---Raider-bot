@@ -1,0 +1,57 @@
+#!/bin/bash
+# =========================================
+#   ██████╗ ██╗   ██╗     ██╗██╗  ██╗██████╗ █████╗ ███╗   ██╗██╗  ██╗██████╗ 
+#  ██╔═══██╗██║   ██║     ██║██║  ██║██╔══██╗██╔══██╗████╗  ██║██║ ██╔╝██╔══██╗
+#  ██║   ██║██║   ██║     ██║███████║██████╔╝███████║██╔██╗ ██║█████╔╝ ██████╔╝
+#  ██║▄▄ ██║██║   ██║██   ██║██╔══██║██╔═══╝ ██╔══██║██║╚██╗██║██╔═██╗ ██╔═══╝ 
+#  ╚██████╔╝╚██████╔╝╚█████╔╝██║  ██║██║     ██║  ██║██║ ╚████║██║  ██╗██║     
+#   ╚══▀▀═╝  ╚═════╝  ╚════╝ ╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     
+# ---------------------------------------------------------------------------
+#                    🚀 Auto Setup Script 🚀
+#                          By InsaanXD
+# =========================================
+
+echo ">>> Installing dependencies..."
+sudo apt-get install -y ca-certificates curl gnupg
+
+echo ">>> Setting up Node.js repository..."
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+
+echo ">>> Updating system..."
+sudo apt-get update
+
+echo ">>> Installing Node.js..."
+sudo apt-get install -y nodejs
+
+echo ">>> Installing Yarn globally..."
+sudo npm i -g yarn
+
+echo ">>> Running yarn in /var/www/pterodactyl..."
+cd /var/www/pterodactyl || exit
+yarn
+
+echo ">>> Installing extra tools..."
+sudo apt install -y zip unzip git curl wget
+
+echo ">>> Downloading latest Blueprint release..."
+wget "$(curl -s https://api.github.com/repos/BlueprintFramework/framework/releases/latest | grep 'browser_download_url' | cut -d '"' -f 4)" -O release.zip
+
+echo ">>> Moving release.zip to /var/www/pterodactyl..."
+sudo mv release.zip /var/www/pterodactyl/release.zip
+cd /var/www/pterodactyl || exit
+unzip -o release.zip
+
+echo ">>> Creating .blueprintrc file..."
+cat <<EOL > /var/www/pterodactyl/.blueprintrc
+WEBUSER="www-data";
+OWNERSHIP="www-data:www-data";
+USERSHELL="/bin/bash";
+EOL
+
+echo ">>> Giving permissions and running blueprint.sh..."
+chmod +x blueprint.sh
+bash blueprint.sh
+
+echo "✅ Setup completed successfully! By InsaanXD"
